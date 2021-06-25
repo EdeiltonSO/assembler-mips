@@ -102,16 +102,7 @@ namespace assembler_mips
             string c1 = "";
 
             for (int i = bin.Length - 1; i >= 0; i--)
-            {
-                if (bin[i] == '0')
-                {
-                    c1 = "1" + c1;
-                }
-                else
-                {
-                    c1 = "0" + c1;
-                }
-            }
+                c1 = bin[i] == '0' ? "1" + c1 : "0" + c1;
 
             int c1Dec = Convert.ToInt32(Converter(2, c1, 10)) + 1;
             string output = Converter(10, c1Dec.ToString(), 2);
@@ -119,7 +110,6 @@ namespace assembler_mips
         }
         static void Main(string[] args)
         {
-            
             /// DEFINIÇÕES GERAIS
             string directory = @"C:\assembler\";
 
@@ -218,191 +208,170 @@ namespace assembler_mips
                         int functPosition = splittedLine[0].IndexOf(':') > 0 ? 1 : 0;
                         string binaryLine = "";
 
-                        if (R_Type)
-                        {
+                        if (R_Type) {
+                            // imprimindo entrada
                             foreach (string s in splittedLine)
-                            {
                                 Console.Write("{0} ", s);
-                            }
                             Console.WriteLine();
 
                             string opcode = "000000", rs = "00000", rt = "00000", rd = "00000", shamt = "00000", funct = "000000";
 
-                            if (!(new Regex("sll|srl|div|mult|jr").IsMatch(splittedLine[functPosition])))
-                            {
+                            if (!(new Regex("sll|srl|div|mult|jr").IsMatch(splittedLine[functPosition]))) {
                                 int rdInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
                                 int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
                                 int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 3]);
-
-                                if (splittedLine[functPosition] == "add")
-                                    funct = "100000";
-
-                                else if (splittedLine[functPosition] == "sub")
-                                    funct = "100010";
-
-                                else if (splittedLine[functPosition] == "and")
-                                    funct = "100100";
-
-                                else if (splittedLine[functPosition] == "or")
-                                    funct = "100101";
-
-                                else if (splittedLine[functPosition] == "xor")
-                                    funct = "100110";
-
-                                else if (splittedLine[functPosition] == "nor")
-                                    funct = "100111";
-
-                                else if (splittedLine[functPosition] == "slt")
-                                    funct = "101010";
-                                else { // mul
-                                    opcode = "011100";
-                                    funct  = "000010";
-                                }
-
                                 rd = Converter(10, rdInt.ToString(), 2).PadLeft(5, '0');
                                 rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
-                            }
 
-                            else if (new Regex("sll|srl").IsMatch(splittedLine[functPosition]))
-                            {
-                                // shamt check
+                                switch (splittedLine[functPosition]) {
+                                    case "add":
+                                        funct = "100000";
+                                        break;
+                                    case "sub":
+                                        funct = "100010";
+                                        break;
+                                    case "and":
+                                        funct = "100100";
+                                        break;
+                                    case "or":
+                                        funct = "100101";
+                                        break;
+                                    case "xor":
+                                        funct = "100110";
+                                        break;
+                                    case "nor":
+                                        funct = "100111";
+                                        break;
+                                    case "slt":
+                                        funct = "101010";
+                                        break;
+                                    case "mul":
+                                        funct = "000010";
+                                        opcode = "011100";
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            else if (new Regex("sll|srl").IsMatch(splittedLine[functPosition])) {
+                                // tratar esse Exit
                                 if (Convert.ToInt32(splittedLine[functPosition + 3]) > 31) Environment.Exit(1);
-                                    
+                                shamt = splittedLine[functPosition + 3];
+                                shamt = Converter(10, shamt, 2).PadLeft(5, '0');
+
                                 int rdInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
                                 int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                
-                                shamt = splittedLine[functPosition + 3];
-                                funct = splittedLine[functPosition] == "sll" ? funct : "000010";
-
                                 rd = Converter(10, rdInt.ToString(), 2).PadLeft(5, '0');
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
-                                shamt = Converter(10, shamt, 2).PadLeft(5, '0');
-                            }
 
-                            else if (new Regex("div|mult").IsMatch(splittedLine[functPosition]))
-                            {
+                                if (splittedLine[functPosition] == "srl") funct = "000010";
+                            }
+                            else if (new Regex("div|mult").IsMatch(splittedLine[functPosition])) {
                                 int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
                                 int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                funct = splittedLine[functPosition] == "div" ? "011010" : "011000";
-
                                 rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
-                            }                            
-
+                                funct = splittedLine[functPosition] == "div" ? "011010" : "011000";
+                            }
                             else { // jr
                                 int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                funct = "001000";
                                 rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
+                                funct = "001000";
                             }
 
                             binaryLine = string.Format("{0} {1} {2} {3} {4} {5}",
                                 opcode, rs, rt, rd, shamt, funct);
                         }
 
-                        // Instruções lw e sw não funcionam
                         else if (I_Type)
                         {
                             string opcode = "000000", rs = "00000", rt = "00000", immediate = "0000000000000000";
 
-                            if (splittedLine[functPosition] == "beq" || splittedLine[functPosition] == "bne")
+                            if (new Regex("addi|andi|ori|xori|slti").IsMatch(splittedLine[functPosition]))
                             {
-                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
+                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
+                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
+                                rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
+                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
+
+                                string immDec = splittedLine[functPosition + 3];
+                                if (immDec.Substring(0, 1) != "-")
+                                    immediate = Converter(10, immDec, 2).PadLeft(16, '0');
+                                else {
+                                    string immNoSignal = Converter(10, immDec[1..], 2).PadLeft(16, '0');
+                                    immediate = ComplementoDeDois(immNoSignal);
+                                }
+
+                                switch (splittedLine[functPosition]) {
+                                    case "addi":
+                                        opcode = "001000";
+                                        break;
+                                    case "andi":
+                                        opcode = "001100";
+                                        break;
+                                    case "ori":
+                                        opcode = "001101";
+                                        break;
+                                    case "xori":
+                                        opcode = "001110";
+                                        break;
+                                    case "slti":
+                                        opcode = "001010";
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            else if (splittedLine[functPosition] == "lui")
+                            {
+                                opcode = "001111";
+
+                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
+                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
+
+                                string immDec = splittedLine[functPosition + 2];
+                                if (immDec.Substring(0, 1) != "-")
+                                    immediate = Converter(10, immDec, 2).PadLeft(16, '0');
+                                else {
+                                    string immNoSignal = Converter(10, immDec[1..], 2).PadLeft(16, '0');
+                                    immediate = ComplementoDeDois(immNoSignal);
+                                }
+                            }
+                            else if (splittedLine[functPosition] == "lw" || splittedLine[functPosition] == "sw")
+                            {
+                                opcode = splittedLine[functPosition] == "lw" ? "100011" : "101011";
+
+                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
+                                int baseInt = Array.IndexOf(registerList, splittedLine[functPosition + 3]);
+                                rs = Converter(10, baseInt.ToString(), 2).PadLeft(5, '0');
+                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
+
+                                string offsetDec = splittedLine[functPosition + 2];
+                                if (offsetDec.Substring(0, 1) != "-")
+                                    immediate = Converter(10, offsetDec, 2).PadLeft(16, '0');
+                                else
+                                {
+                                    string offsetNoSignal = Converter(10, offsetDec[1..], 2).PadLeft(16, '0');
+                                    immediate = ComplementoDeDois(offsetNoSignal);
+                                }
+                            }
+                            
+                            // parei aqui
+                            else if (new Regex("beq|bne").IsMatch(splittedLine[functPosition]))
+                            {
+                                /*int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
                                 int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
                                 // immediate = splittedLine[functPosition + 3];
 
                                 opcode = splittedLine[functPosition] == "beq" ? "000100" : "000101";
 
                                 rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
+                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');*/
                             }
 
-                            if (splittedLine[functPosition] == "addi")
-                            {
-                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                // immediate = splittedLine[functPosition + 3];
-
-                                opcode = "001000";
-                                rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
-                            }
-
-                            if (splittedLine[functPosition] == "andi")
-                            {
-                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                // immediate = splittedLine[functPosition + 3];
-
-                                opcode = "001100";
-                                rs = Converter(10, rs.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rt.ToString(), 2).PadLeft(5, '0');
-                            }
-
-                            if (splittedLine[functPosition] == "ori")
-                            {
-                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                // immediate = splittedLine[functPosition + 3];
-
-                                opcode = "001101";
-                                rs = Converter(10, rs.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rt.ToString(), 2).PadLeft(5, '0');
-                            }
-
-                            if (splittedLine[functPosition] == "xori")
-                            {
-                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                // immediate = splittedLine[functPosition + 3];
-
-                                opcode = "001110";
-                                rs = Converter(10, rs.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rt.ToString(), 2).PadLeft(5, '0');
-                            }
-
-                            if (splittedLine[functPosition] == "slti")
-                            {
-                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                // immediate = splittedLine[functPosition + 3];
-
-                                opcode = "001010";
-                                rs = Converter(10, rs.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rt.ToString(), 2).PadLeft(5, '0');
-                            }
-
-                            if (splittedLine[functPosition] == "lui")
-                            {
-                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                // immediate = splittedLine[functPosition + 3];
-
-                                opcode = "001111";
-                                rs = Converter(10, rs.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rt.ToString(), 2).PadLeft(5, '0');
-                            }
-
-                            if (splittedLine[functPosition] == "lw" || splittedLine[functPosition] == "sw")
-                            {
-                                int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
-                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 3]);
-                                // immediate = splittedLine[functPosition + 2];
-
-                                opcode = splittedLine[functPosition] == "lw" ? "100011" : "101011";
-                                rs = Converter(10, rs.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rt.ToString(), 2).PadLeft(5, '0');
-                            }
-                            
-                            if (immediate.Substring(0, 1) == "-")
-                            {
-                                // tratar imediatos negativos
-                                // string immComp2 = ComplementoDeDois(Converter(10, immediate.Remove(0, 1), 2));
-                                // binaryLine = string.Format("{0}{1}{2}{3}", opcode, rs, rt, immComp2.PadLeft(16, '0'));
-                            }  
-                            else
-                            {
-                                //binaryLine = string.Format("{0} {1} {2} {3}", opcode, rs, rt, Converter(10, immediate, 2).PadLeft(16, '0'));
-                            }
+                            binaryLine = string.Format("{0} {1} {2} {3}", 
+                                opcode, rs, rt, immediate);
                         }
 
                         else if (J_Type)
