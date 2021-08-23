@@ -124,7 +124,7 @@ namespace assembler_mips
             }
 
             /// Dicionário de labels <address, label>
-            Dictionary<int, string> labelList = new Dictionary<int, string>();
+            Dictionary<string, int> labelList = new Dictionary<string, int>();
 
             /// Arrays de registradores
             /// O índice de cada item é o número de seu registrador
@@ -169,7 +169,7 @@ namespace assembler_mips
                     if (indexTwoDots > -1)
                     {
                         string label = cleanLine.Substring(0, indexTwoDots);
-                        labelList.Add(lineNumber, label);
+                        labelList.Add(label, lineNumber);
                     }
                     lines.Add(new Line(cleanLine, lineNumber));
 
@@ -191,6 +191,7 @@ namespace assembler_mips
             {
                 foreach (Line line in lines)
                 {
+                    
                     if (line.ProgramCounter == lineNumber)
                     {
                         Regex rxR_Type = new Regex("add |sub |and |or |xor |nor |slt |sll |srl |mul |mult |div |jr");
@@ -210,11 +211,12 @@ namespace assembler_mips
 
                         if (R_Type)
                         {
+                            /*
                             // imprimindo entrada
                             foreach (string s in splittedLine)
                                 Console.Write("{0} ", s);
                             Console.WriteLine();
-
+                            */
                             string opcode = "000000", rs = "00000", rt = "00000", rd = "00000", shamt = "00000", funct = "000000";
 
                             if (!(new Regex("sll|srl|div|mult|jr").IsMatch(splittedLine[functPosition])))
@@ -292,10 +294,10 @@ namespace assembler_mips
 
                         else if (I_Type)
                         {
-                            // imprimindo entrada
+                            /* imprimindo entrada
                             foreach (string s in splittedLine)
                                 Console.Write("{0} ", s);
-                            Console.WriteLine();
+                            Console.WriteLine();*/
 
                             string opcode = "000000", rs = "00000", rt = "00000", immediate = "0000000000000000";
 
@@ -371,38 +373,60 @@ namespace assembler_mips
                                 }
                             }
 
-                            // parei aqui
                             else if (new Regex("beq|bne").IsMatch(splittedLine[functPosition]))
                             {
-                                /*int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
+                                int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
                                 int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
-                                // immediate = splittedLine[functPosition + 3];
+                                rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
+                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
 
                                 opcode = splittedLine[functPosition] == "beq" ? "000100" : "000101";
 
-                                rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
-                                rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');*/
+                                immediate = splittedLine[functPosition + 3];
+
+                                //Console.WriteLine("de {0} para {1}", lineNumber, labelList[immediate]);
+
+                                int deslocamento = labelList[immediate] - lineNumber;
+                                // string deslocStr = deslocamento.ToString();
+
+                                while (deslocamento < 0 && lines[lineNumber + deslocamento].LineContent.IndexOf(':') > 0)
+                                    deslocamento++;
+                                deslocamento--;
+
+                                // ao invés do substring, que tal só verificar se o deslocamento é negativo?
+                                if (deslocamento.ToString().Substring(0, 1) == "-")
+                                {
+                                    string deslocNoSignal = Converter(10, deslocamento.ToString()[1..], 2).PadLeft(16, '0');
+                                    immediate = ComplementoDeDois(deslocNoSignal);
+                                    /*
+                                    Console.WriteLine(">>>   deslocamento: {0}", deslocamento);
+                                    Console.WriteLine(">>>      deslocStr: {0}", deslocamento.ToString());
+                                    Console.WriteLine(">>> deslocNoSignal: {0}", deslocNoSignal);
+                                    Console.WriteLine(">>>      immediate: {0}", immediate);
+                                    */
+                                }
+                                else
+                                    immediate = Converter(10, deslocamento.ToString(), 2).PadLeft(16, '0');
+
+                                //Console.WriteLine("deslocamento dec: {0}", deslocamento);
+                                //Console.WriteLine("deslocamento bin: {0}", immediate);
                             }
 
-                            binaryLine = string.Format("{0}{1}{2}{3}",
+                            binaryLine = string.Format("{0} {1} {2} {3}",
                                 opcode, rs, rt, immediate);
                         }
 
                         else if (J_Type)
                         {
-                            string opcode = splittedLine[functPosition] == "j" ? "000010" : /*jal*/ "000011";
+                            /* imprimindo entrada
+                            foreach (string s in splittedLine)
+                                Console.Write("{0} ", s);
+                            Console.WriteLine();*/
 
+                            string opcode = splittedLine[functPosition] == "j" ? "000010" : /*jal*/ "000011";
                             string address = "00000000000000000000000000";
 
-                            Console.WriteLine(">>> {0}", splittedLine[functPosition + 1]);
-                            foreach (KeyValuePair<int, string> label in labelList)
-                            {
-                                // Console.WriteLine("### {0} {1}", label.Key, label.Value);
-                                if (label.Value == splittedLine[functPosition + 1])
-                                {
-                                    address = Converter(10, (label.Key).ToString(), 2).PadLeft(26, '0');
-                                }
-                            }
+                            //
 
                             binaryLine = string.Format("{0} {1}", opcode, address);
                         }
@@ -419,21 +443,19 @@ namespace assembler_mips
             }
 
 
+            Console.WriteLine("\nENTRADA:");
+            foreach (Line line in lines)
+            {
+                Console.WriteLine("{0}: {1}", line.ProgramCounter, line.LineContent);
+            }
 
-            int x = 1;
+            Console.WriteLine("\nBINÁRIO:");
+            int x = 0;
             foreach (string i in binaryInstructions)
             {
                 // Console.WriteLine("{0}: {1}", x, Converter(2, i, 16).PadLeft(8, '0'));
                 Console.WriteLine("{0}: {1}", x, i);
                 x++;
-            }
-
-
-            Console.WriteLine("\n\n");
-
-            foreach (Line line in lines)
-            {
-                Console.WriteLine("{0}: {1}", line.ProgramCounter, line.LineContent);
             }
 
 
