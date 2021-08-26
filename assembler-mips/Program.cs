@@ -199,12 +199,6 @@ namespace assembler_mips
 
                         if (R_Type)
                         {
-                            /*
-                            // imprimindo entrada
-                            foreach (string s in splittedLine)
-                                Console.Write("{0} ", s);
-                            Console.WriteLine();
-                            */
                             string opcode = "000000", rs = "00000", rt = "00000", rd = "00000", shamt = "00000", funct = "000000";
 
                             if (!(new Regex("sll|srl|div|mult|jr").IsMatch(splittedLine[functPosition])))
@@ -249,10 +243,13 @@ namespace assembler_mips
                             }
                             else if (new Regex("sll|srl").IsMatch(splittedLine[functPosition]))
                             {
-                                //** tratar esse Exit
-                                if (Convert.ToInt32(splittedLine[functPosition + 3]) > 31) Environment.Exit(1);
-                                shamt = splittedLine[functPosition + 3];
-                                shamt = Converter(10, shamt, 2).PadLeft(5, '0');
+                                if (Convert.ToInt32(splittedLine[functPosition + 3]) > 31)
+                                    shamt = "-----";
+                                else
+                                {
+                                    shamt = splittedLine[functPosition + 3];
+                                    shamt = Converter(10, shamt, 2).PadLeft(5, '0');
+                                }
 
                                 int rdInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
                                 int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
