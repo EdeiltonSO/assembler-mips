@@ -379,37 +379,22 @@ namespace assembler_mips
                                 int rtInt = Array.IndexOf(registerList, splittedLine[functPosition + 2]);
                                 rs = Converter(10, rsInt.ToString(), 2).PadLeft(5, '0');
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
-
                                 opcode = splittedLine[functPosition] == "beq" ? "000100" : "000101";
 
                                 immediate = splittedLine[functPosition + 3];
-
-                                //Console.WriteLine("de {0} para {1}", lineNumber, labelList[immediate]);
-
                                 int deslocamento = labelList[immediate] - lineNumber;
-                                // string deslocStr = deslocamento.ToString();
 
                                 while (deslocamento < 0 && lines[lineNumber + deslocamento].LineContent.IndexOf(':') > 0)
                                     deslocamento++;
                                 deslocamento--;
 
-                                // ao invés do substring, que tal só verificar se o deslocamento é negativo?
-                                if (deslocamento.ToString().Substring(0, 1) == "-")
+                                if (deslocamento < 0)
                                 {
                                     string deslocNoSignal = Converter(10, deslocamento.ToString()[1..], 2).PadLeft(16, '0');
                                     immediate = ComplementoDeDois(deslocNoSignal);
-                                    /*
-                                    Console.WriteLine(">>>   deslocamento: {0}", deslocamento);
-                                    Console.WriteLine(">>>      deslocStr: {0}", deslocamento.ToString());
-                                    Console.WriteLine(">>> deslocNoSignal: {0}", deslocNoSignal);
-                                    Console.WriteLine(">>>      immediate: {0}", immediate);
-                                    */
                                 }
                                 else
                                     immediate = Converter(10, deslocamento.ToString(), 2).PadLeft(16, '0');
-
-                                //Console.WriteLine("deslocamento dec: {0}", deslocamento);
-                                //Console.WriteLine("deslocamento bin: {0}", immediate);
                             }
 
                             binaryLine = string.Format("{0} {1} {2} {3}",
