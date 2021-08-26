@@ -191,7 +191,6 @@ namespace assembler_mips
             {
                 foreach (Line line in lines)
                 {
-                    
                     if (line.ProgramCounter == lineNumber)
                     {
                         Regex rxR_Type = new Regex("add |sub |and |or |xor |nor |slt |sll |srl |mul |mult |div |jr");
@@ -261,7 +260,7 @@ namespace assembler_mips
                             }
                             else if (new Regex("sll|srl").IsMatch(splittedLine[functPosition]))
                             {
-                                // tratar esse Exit
+                                //** tratar esse Exit
                                 if (Convert.ToInt32(splittedLine[functPosition + 3]) > 31) Environment.Exit(1);
                                 shamt = splittedLine[functPosition + 3];
                                 shamt = Converter(10, shamt, 2).PadLeft(5, '0');
@@ -309,13 +308,13 @@ namespace assembler_mips
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
 
                                 string immDec = splittedLine[functPosition + 3];
-                                if (immDec.Substring(0, 1) != "-")
-                                    immediate = Converter(10, immDec, 2).PadLeft(16, '0');
-                                else
+                                if (immDec.Substring(0, 1) == "-")
                                 {
                                     string immNoSignal = Converter(10, immDec[1..], 2).PadLeft(16, '0');
                                     immediate = ComplementoDeDois(immNoSignal);
                                 }
+                                else
+                                    immediate = Converter(10, immDec, 2).PadLeft(16, '0');
 
                                 switch (splittedLine[functPosition])
                                 {
@@ -346,13 +345,13 @@ namespace assembler_mips
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
 
                                 string immDec = splittedLine[functPosition + 2];
-                                if (immDec.Substring(0, 1) != "-")
-                                    immediate = Converter(10, immDec, 2).PadLeft(16, '0');
-                                else
+                                if (immDec.Substring(0, 1) == "-")
                                 {
                                     string immNoSignal = Converter(10, immDec[1..], 2).PadLeft(16, '0');
                                     immediate = ComplementoDeDois(immNoSignal);
                                 }
+                                else
+                                    immediate = Converter(10, immDec, 2).PadLeft(16, '0');
                             }
                             else if (splittedLine[functPosition] == "lw" || splittedLine[functPosition] == "sw")
                             {
@@ -364,15 +363,14 @@ namespace assembler_mips
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
 
                                 string offsetDec = splittedLine[functPosition + 2];
-                                if (offsetDec.Substring(0, 1) != "-")
-                                    immediate = Converter(10, offsetDec, 2).PadLeft(16, '0');
-                                else
+                                if (offsetDec.Substring(0, 1) == "-")
                                 {
                                     string offsetNoSignal = Converter(10, offsetDec[1..], 2).PadLeft(16, '0');
                                     immediate = ComplementoDeDois(offsetNoSignal);
                                 }
+                                else
+                                    immediate = Converter(10, offsetDec, 2).PadLeft(16, '0');
                             }
-
                             else if (new Regex("beq|bne").IsMatch(splittedLine[functPosition]))
                             {
                                 int rsInt = Array.IndexOf(registerList, splittedLine[functPosition + 1]);
