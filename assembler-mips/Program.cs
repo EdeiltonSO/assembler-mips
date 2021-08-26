@@ -9,15 +9,13 @@ namespace assembler_mips
 {
     public class Line
     {
-        public string LineContent;
-        public int ProgramCounter;
-        public bool LineHasLabel;
+        public string Content;
+        public int Counter;
 
-        public Line(string cleanLine, int pc, bool hasLabel = false)
+        public Line(string cleanLine, int pc)
         {
-            LineContent = cleanLine;
-            ProgramCounter = pc;
-            LineHasLabel = hasLabel;
+            Content = cleanLine;
+            Counter = pc;
         }
     }
 
@@ -172,37 +170,28 @@ namespace assembler_mips
                         labelList.Add(label, lineNumber);
                     }
                     lines.Add(new Line(cleanLine, lineNumber));
-
                     lineNumber++;
                 }
             }
             maxLineNumber = lineNumber--;
-
-
-
-
-            // AJEITAR DAQUI PRA CIMA
-
-
-
 
             /// Processamento das instruções
             for (lineNumber = 0; lineNumber <= maxLineNumber; lineNumber++)
             {
                 foreach (Line line in lines)
                 {
-                    if (line.ProgramCounter == lineNumber)
+                    if (line.Counter == lineNumber)
                     {
                         Regex rxR_Type = new Regex("add |sub |and |or |xor |nor |slt |sll |srl |mul |mult |div |jr");
-                        bool R_Type = rxR_Type.IsMatch(line.LineContent);
+                        bool R_Type = rxR_Type.IsMatch(line.Content);
 
                         Regex rxI_Type = new Regex("beq |bne |addi |andi |ori |xori |slti |lui |lw |sw ");
-                        bool I_Type = rxI_Type.IsMatch(line.LineContent);
+                        bool I_Type = rxI_Type.IsMatch(line.Content);
 
                         Regex rxJ_Type = new Regex("j |jal ");
-                        bool J_Type = rxJ_Type.IsMatch(line.LineContent);
+                        bool J_Type = rxJ_Type.IsMatch(line.Content);
 
-                        string[] splittedLine = line.LineContent.Split(' ', '	', ',', '(', ')');
+                        string[] splittedLine = line.Content.Split(' ', '	', ',', '(', ')');
                         splittedLine = splittedLine.Where(w => w.Length > 0).ToArray();
 
                         int functPosition = splittedLine[0].IndexOf(':') > 0 ? 1 : 0;
@@ -290,14 +279,8 @@ namespace assembler_mips
                             binaryLine = string.Format("{0}{1}{2}{3}{4}{5}",
                                 opcode, rs, rt, rd, shamt, funct);
                         }
-
                         else if (I_Type)
                         {
-                            /* imprimindo entrada
-                            foreach (string s in splittedLine)
-                                Console.Write("{0} ", s);
-                            Console.WriteLine();*/
-
                             string opcode = "000000", rs = "00000", rt = "00000", immediate = "0000000000000000";
 
                             if (new Regex("addi|andi|ori|xori|slti").IsMatch(splittedLine[functPosition]))
@@ -379,10 +362,10 @@ namespace assembler_mips
                                 rt = Converter(10, rtInt.ToString(), 2).PadLeft(5, '0');
                                 opcode = splittedLine[functPosition] == "beq" ? "000100" : "000101";
 
-                                immediate = splittedLine[functPosition + 3];
-                                int deslocamento = labelList[immediate] - lineNumber;
+                                string label = splittedLine[functPosition + 3];
+                                int deslocamento = labelList[label] - lineNumber;
 
-                                while (deslocamento < 0 && lines[lineNumber + deslocamento].LineContent.IndexOf(':') > 0)
+                                while (deslocamento < 0 && lines[lineNumber + deslocamento].Content.IndexOf(':') > 0)
                                     deslocamento++;
                                 deslocamento--;
 
@@ -395,28 +378,25 @@ namespace assembler_mips
                                     immediate = Converter(10, deslocamento.ToString(), 2).PadLeft(16, '0');
                             }
 
-                            binaryLine = string.Format("{0} {1} {2} {3}",
+                            binaryLine = string.Format("{0}{1}{2}{3}",
                                 opcode, rs, rt, immediate);
                         }
-
                         else if (J_Type)
                         {
-                            /* imprimindo entrada
-                            foreach (string s in splittedLine)
-                                Console.Write("{0} ", s);
-                            Console.WriteLine();*/
-
                             string opcode = splittedLine[functPosition] == "j" ? "000010" : /*jal*/ "000011";
                             string address = "00000000000000000000000000";
 
-                            //
+                            string label = splittedLine[functPosition + 1];
+                            int labelsUntilDestination = 0;
 
-                            binaryLine = string.Format("{0} {1}", opcode, address);
-                        }
+                            for (int i = 0; i < labelList[label]; i++)
+                                if (lines[i].Content.IndexOf(':') > -1)
+                                    labelsUntilDestination++;
 
-                        else
-                        {
-                            // label
+                            int destination = labelList[label] - labelsUntilDestination;
+                            address = Converter(10, destination.ToString(), 2).PadLeft(26, '0');
+
+                            binaryLine = string.Format("{0}{1}", opcode, address);
                         }
 
                         if (binaryLine.Length > 0)
@@ -425,22 +405,22 @@ namespace assembler_mips
                 }
             }
 
-
-            Console.WriteLine("\nENTRADA:");
+            Console.WriteLine("ENTRADA:");
             foreach (Line line in lines)
             {
-                Console.WriteLine("{0}: {1}", line.ProgramCounter, line.LineContent);
+                Console.WriteLine("{0}: {1}", line.Counter, line.Content);
             }
 
             Console.WriteLine("\nBINÁRIO:");
             int x = 0;
             foreach (string i in binaryInstructions)
             {
-                // Console.WriteLine("{0}: {1}", x, Converter(2, i, 16).PadLeft(8, '0'));
-                Console.WriteLine("{0}: {1}", x, i);
+                if (x > 9)
+                    Console.WriteLine("{0}: {1}", x, i);
+                else
+                    Console.WriteLine("0{0}: {1}", x, i);
                 x++;
             }
-
 
             /// Escrita no arquivo memoria.mif
             /*
