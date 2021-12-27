@@ -472,5 +472,3 @@ namespace assembler_mips
         }
     }
 }
-
-// testando git no vs2022
