@@ -405,10 +405,13 @@ namespace assembler_mips
             Console.WriteLine("ENTRADA:");
             foreach (Line line in lines)
             {
-                Console.WriteLine("{0}: {1}", line.Counter, line.Content);
+                if (line.Counter > 9)
+                    Console.WriteLine("{0}: {1}", line.Counter, line.Content);
+                else
+                    Console.WriteLine("0{0}: {1}", line.Counter, line.Content);
             }
 
-            Console.WriteLine("\nBINÁRIO:");
+            Console.WriteLine("\nSAÍDA:");
             int x = 0;
             foreach (string i in binaryInstructions)
             {
@@ -420,7 +423,7 @@ namespace assembler_mips
             }
 
             /// Escrita no arquivo memoria.mif
-            /*
+            
             List<string> partsOfInstructions = new List<string>();
             foreach (string i in binaryInstructions)
             {
@@ -444,6 +447,28 @@ namespace assembler_mips
                 "BEGIN" 
             };
 
+            foreach (string h in header)
+                Console.WriteLine(h);
+
+            int memoryAddr = 0;
+            foreach (string line in partsOfInstructions)
+            {
+                string addrFormatted = Converter(10, memoryAddr.ToString(), 16);
+                Console.WriteLine("{0}: {1};", addrFormatted, line);
+                memoryAddr++;
+            }
+
+            while(memoryAddr <= 255)
+            {
+                string addrFormatted = Converter(10, memoryAddr.ToString(), 16);
+                // Console.WriteLine("{0}: {1};", memoryAddr, "00000000");
+                Console.WriteLine("{0}: {1};", addrFormatted, "00000000");
+                memoryAddr++;
+            }
+
+            Console.WriteLine("END;");
+
+            /*
             File.WriteAllLines(directory + "memoria.mif", header);
             //foreach (string h in header)
                 //Console.WriteLine(h);
